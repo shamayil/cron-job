@@ -1,0 +1,22 @@
+pipelines:
+  branches:
+    master:
+      - step:
+          name: Login to docker
+          image: amazon/aws-cli
+          services:
+            - docker
+          script:
+            # dockerhub login
+            - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PWD
+            - cp /root/.docker/config.json .
+          artifacts:
+            - config.json
+      - step:
+          name: Build & Push queue-worker image
+          services:
+            - docker
+          script:
+            - mkdir /root/.docker && mv config.json /root/.docker/
+            - docker build -t $DOCKERHUB_USERNAME/sqs-cron-worker:2.0 .
+            - docker push $DOCKERHUB_USERNAME/sqs-cron-worker:2.0
